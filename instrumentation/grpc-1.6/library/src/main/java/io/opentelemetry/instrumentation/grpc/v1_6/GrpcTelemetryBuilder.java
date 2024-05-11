@@ -53,6 +53,7 @@ public final class GrpcTelemetryBuilder {
   private boolean captureExperimentalSpanAttributes;
   private List<String> capturedClientRequestMetadata = Collections.emptyList();
   private List<String> capturedServerRequestMetadata = Collections.emptyList();
+  private String serviceName;
 
   GrpcTelemetryBuilder(OpenTelemetry openTelemetry) {
     this.openTelemetry = openTelemetry;
@@ -146,6 +147,13 @@ public final class GrpcTelemetryBuilder {
     return this;
   }
 
+  @CanIgnoreReturnValue
+  public GrpcTelemetryBuilder setServiceName(
+      String serviceName) {
+    this.serviceName = serviceName;
+    return this;
+  }
+
   /** Returns a new {@link GrpcTelemetry} with the settings of this {@link GrpcTelemetryBuilder}. */
   @SuppressWarnings("deprecation") // using createForServerSide() for the old->stable semconv story
   public GrpcTelemetry build() {
@@ -182,6 +190,7 @@ public final class GrpcTelemetryBuilder {
         .addAttributesExtractor(
             new GrpcAttributesExtractor(
                 GrpcRpcAttributesGetter.INSTANCE, capturedClientRequestMetadata))
+//        .addContextCustomizer(new GrpcServerContextCustomizer("client"))
         .addOperationMetrics(RpcClientMetrics.get());
     serverInstrumenterBuilder
         .setSpanStatusExtractor(GrpcSpanStatusExtractor.SERVER)
@@ -193,7 +202,9 @@ public final class GrpcTelemetryBuilder {
             new GrpcAttributesExtractor(
                 GrpcRpcAttributesGetter.INSTANCE, capturedServerRequestMetadata))
         .addAttributesExtractors(additionalServerExtractors)
+        .addContextCustomizer(new GrpcServerContextCustomizer(serviceName))
         .addOperationMetrics(RpcServerMetrics.get());
+    System.out.println("===addContextCustomizer===");
 
     if (peerService != null) {
       clientInstrumenterBuilder.addAttributesExtractor(

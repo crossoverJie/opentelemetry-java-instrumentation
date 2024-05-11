@@ -38,11 +38,13 @@ public final class GrpcSingletons {
         InstrumentationConfig.get()
             .getList("otel.instrumentation.grpc.capture-metadata.server.request", emptyList());
 
+    String serviceName = InstrumentationConfig.get().getString("otel.service.name");
     GrpcTelemetry telemetry =
         GrpcTelemetry.builder(GlobalOpenTelemetry.get())
             .setCaptureExperimentalSpanAttributes(experimentalSpanAttributes)
             .setCapturedClientRequestMetadata(clientRequestMetadata)
             .setCapturedServerRequestMetadata(serverRequestMetadata)
+            .setServiceName(serviceName)
             .build();
 
     CLIENT_INTERCEPTOR = telemetry.newClientInterceptor();
