@@ -30,19 +30,19 @@ public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcReques
     String rpcService = startAttributeds.get(AttributeKey.stringKey("rpc.service"));
     // call from grpc
     String method = rpcService + ":" + fullMethodName;
-    String baggageInfo = getBaggageInfo(currentRpc, method);
+    String baggageInfo = getBaggageInfo(currentServiceName, method);
 
     String httpUrlPath = Baggage.fromContext(parentContext).getEntryValue(CURRENT_HTTP_URL_PATH);
     if (!StringUtils.isNullOrEmpty(httpUrlPath)) {
       // call from http
-      baggageInfo = getBaggageInfo(currentRpc, httpUrlPath);
+      // currentRpc = currentRpc;  currentRpc = create1|GET:/request
       // clear current_http_url_path
       builder.put(CURRENT_HTTP_URL_PATH, "");
     }
 
     Baggage baggage = builder
-        .put(PARENT_RPC_KEY, baggageInfo)
-        .put(CURRENT_RPC_KEY, currentServiceName)
+        .put(PARENT_RPC_KEY, currentRpc)
+        .put(CURRENT_RPC_KEY, baggageInfo)
         .build();
     System.out.println("====agent set baggage " + baggageInfo);
     return parentContext.with(baggage);
