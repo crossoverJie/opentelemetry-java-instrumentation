@@ -190,7 +190,7 @@ public final class GrpcTelemetryBuilder {
         .addAttributesExtractor(
             new GrpcAttributesExtractor(
                 GrpcRpcAttributesGetter.INSTANCE, capturedClientRequestMetadata))
-//        .addContextCustomizer(new GrpcServerContextCustomizer("client"))
+//        .addContextCustomizer(new GrpcServerContextCustomizer(serviceName))
         .addOperationMetrics(RpcClientMetrics.get());
     serverInstrumenterBuilder
         .setSpanStatusExtractor(GrpcSpanStatusExtractor.SERVER)

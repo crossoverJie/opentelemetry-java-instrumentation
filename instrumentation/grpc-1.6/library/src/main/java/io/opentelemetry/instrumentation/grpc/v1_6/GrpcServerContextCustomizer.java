@@ -1,6 +1,8 @@
 package io.opentelemetry.instrumentation.grpc.v1_6;
 
 import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.baggage.BaggageBuilder;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.StringUtils;
 import io.opentelemetry.context.Context;
@@ -12,6 +14,8 @@ public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcReques
   private static final String PARENT_RPC_KEY = "parent_rpc";
   private static final String CURRENT_RPC_KEY = "current_rpc";
 
+  private static final String CURRENT_HTTP_URL_PATH = "current_http_url_path";
+
   public GrpcServerContextCustomizer(String serviceName) {
     this.currentServiceName = serviceName;
   }
@@ -19,10 +23,24 @@ public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcReques
   @Override
   public Context onStart(Context parentContext, GrpcRequest grpcRequest,
       Attributes startAttributeds) {
+    BaggageBuilder builder = Baggage.fromContext(parentContext).toBuilder();
 
-    String currentPpc = Baggage.fromContext(parentContext).getEntryValue(CURRENT_RPC_KEY);
-    String baggageInfo = getBaggageInfo(currentPpc, grpcRequest.getMethod().getFullMethodName());
-    Baggage baggage = Baggage.fromContext(parentContext).toBuilder()
+    String currentRpc = Baggage.fromContext(parentContext).getEntryValue(CURRENT_RPC_KEY);
+    String fullMethodName = startAttributeds.get(AttributeKey.stringKey("rpc.method"));
+    String rpcService = startAttributeds.get(AttributeKey.stringKey("rpc.service"));
+    // call from grpc
+    String method = rpcService + ":" + fullMethodName;
+    String baggageInfo = getBaggageInfo(currentRpc, method);
+
+    String httpUrlPath = Baggage.fromContext(parentContext).getEntryValue(CURRENT_HTTP_URL_PATH);
+    if (!StringUtils.isNullOrEmpty(httpUrlPath)) {
+      // call from http
+      baggageInfo = getBaggageInfo(currentRpc, httpUrlPath);
+      // clear current_http_url_path
+      builder.put(CURRENT_HTTP_URL_PATH, "");
+    }
+
+    Baggage baggage = builder
         .put(PARENT_RPC_KEY, baggageInfo)
         .put(CURRENT_RPC_KEY, currentServiceName)
         .build();
@@ -35,7 +53,7 @@ public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcReques
     if (StringUtils.isNullOrEmpty(serviceName)) {
       return "";
     }
-    return serviceName + "." + method;
+    return serviceName + "|" + method;
   }
 
 }

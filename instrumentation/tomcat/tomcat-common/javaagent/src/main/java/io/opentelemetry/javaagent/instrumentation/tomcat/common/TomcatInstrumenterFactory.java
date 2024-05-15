@@ -16,6 +16,7 @@ import io.opentelemetry.instrumentation.api.semconv.http.HttpServerRoute;
 import io.opentelemetry.instrumentation.api.semconv.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.semconv.http.HttpSpanStatusExtractor;
 import io.opentelemetry.javaagent.bootstrap.internal.CommonConfig;
+import io.opentelemetry.javaagent.bootstrap.internal.InstrumentationConfig;
 import io.opentelemetry.javaagent.bootstrap.servlet.AppServerBridge;
 import io.opentelemetry.javaagent.instrumentation.servlet.ServletAccessor;
 import io.opentelemetry.javaagent.instrumentation.servlet.ServletErrorCauseExtractor;
@@ -29,6 +30,7 @@ public final class TomcatInstrumenterFactory {
   public static <REQUEST, RESPONSE> Instrumenter<Request, Response> create(
       String instrumentationName, ServletAccessor<REQUEST, RESPONSE> accessor) {
     TomcatHttpAttributesGetter httpAttributesGetter = new TomcatHttpAttributesGetter();
+    String serviceName = InstrumentationConfig.get().getString("otel.service.name");
 
     InstrumenterBuilder<Request, Response> builder =
         Instrumenter.<Request, Response>builder(
@@ -46,7 +48,7 @@ public final class TomcatInstrumenterFactory {
                     .setKnownMethods(CommonConfig.get().getKnownHttpRequestMethods())
                     .build())
             .addContextCustomizer(
-                HttpServerRoute.builder(httpAttributesGetter)
+                HttpServerRoute.builder(httpAttributesGetter, serviceName)
                     .setKnownMethods(CommonConfig.get().getKnownHttpRequestMethods())
                     .build())
             .addContextCustomizer(
