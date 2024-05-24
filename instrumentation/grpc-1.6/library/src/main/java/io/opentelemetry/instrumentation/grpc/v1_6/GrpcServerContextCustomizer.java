@@ -30,7 +30,7 @@ public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcReques
     String fullMethodName = startAttributeds.get(AttributeKey.stringKey(RpcIncubatingAttributes.RPC_METHOD.getKey()));
     String rpcService = startAttributeds.get(AttributeKey.stringKey(RpcIncubatingAttributes.RPC_SERVICE.getKey()));
     // call from grpc
-    String method = rpcService + "." + fullMethodName;
+    String method = rpcService + "/" + fullMethodName;
     String baggageInfo = getBaggageInfo(currentServiceName, method);
 
     String httpUrlPath = Baggage.fromContext(parentContext).getEntryValue(CURRENT_HTTP_URL_PATH);
