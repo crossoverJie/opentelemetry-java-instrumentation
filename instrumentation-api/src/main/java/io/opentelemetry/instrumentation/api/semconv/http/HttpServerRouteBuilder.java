@@ -79,8 +79,7 @@ public final class HttpServerRouteBuilder<REQUEST> {
         method = "HTTP";
       }
       String urlPath = getter.getUrlPath(request);
-      String methodPath = method + ":" + urlPath;
-      System.out.println("===methodPath " + methodPath);
+      String methodPath = method + " " + urlPath;
 
       String currentRpc = Baggage.fromContext(context).getEntryValue(CURRENT_RPC_KEY);
       String baggageInfo = getBaggageInfo(serviceName, methodPath);
@@ -89,7 +88,6 @@ public final class HttpServerRouteBuilder<REQUEST> {
           .put(CURRENT_RPC_KEY, baggageInfo)
           .put(CURRENT_HTTP_URL_PATH, methodPath)
           .build();
-      System.out.println("====Servlet set baggage " + baggageInfo + " serviceName:" + serviceName);
       return context.with(HttpRouteState.create(method, null, 0))
           .with(baggage);
     };
