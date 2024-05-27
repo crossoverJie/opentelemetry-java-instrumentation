@@ -45,6 +45,10 @@ public final class HttpServerRoute {
       HttpServerAttributesGetter<REQUEST, ?> getter) {
     return new HttpServerRouteBuilder<>(getter);
   }
+  public static <REQUEST> HttpServerRouteBuilder<REQUEST> builder(
+      HttpServerAttributesGetter<REQUEST, ?> getter, String serviceName) {
+    return new HttpServerRouteBuilder<>(getter, serviceName);
+  }
 
   private HttpServerRoute() {}
 

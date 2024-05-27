@@ -6,6 +6,8 @@
 package io.opentelemetry.instrumentation.api.semconv.http;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.internal.StringUtils;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.ContextCustomizer;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
@@ -25,8 +27,18 @@ public final class HttpServerRouteBuilder<REQUEST> {
   final HttpServerAttributesGetter<REQUEST, ?> getter;
   Set<String> knownMethods = HttpConstants.KNOWN_METHODS;
 
+  final String serviceName;
+  private static final String PARENT_RPC_KEY = "parent_rpc";
+  private static final String CURRENT_RPC_KEY = "current_rpc";
+  private static final String CURRENT_HTTP_URL_PATH = "current_http_url_path";
+
   HttpServerRouteBuilder(HttpServerAttributesGetter<REQUEST, ?> getter) {
     this.getter = getter;
+    this.serviceName = "";
+  }
+  HttpServerRouteBuilder(HttpServerAttributesGetter<REQUEST, ?> getter, String serviceName) {
+    this.getter = getter;
+    this.serviceName = serviceName;
   }
 
   /**
@@ -66,7 +78,26 @@ public final class HttpServerRouteBuilder<REQUEST> {
       if (method == null || !knownMethods.contains(method)) {
         method = "HTTP";
       }
-      return context.with(HttpRouteState.create(method, null, 0));
+      String urlPath = getter.getUrlPath(request);
+      String methodPath = method + " " + urlPath;
+
+      String currentRpc = Baggage.fromContext(context).getEntryValue(CURRENT_RPC_KEY);
+      String baggageInfo = getBaggageInfo(serviceName, methodPath);
+      Baggage baggage = Baggage.fromContext(context).toBuilder()
+          .put(PARENT_RPC_KEY, currentRpc)
+          .put(CURRENT_RPC_KEY, baggageInfo)
+          .put(CURRENT_HTTP_URL_PATH, methodPath)
+          .build();
+      return context.with(HttpRouteState.create(method, null, 0))
+          .with(baggage);
     };
   }
+
+  private static String getBaggageInfo(String serviceName, String method) {
+    if (StringUtils.isNullOrEmpty(serviceName)) {
+      return "";
+    }
+    return serviceName + "|" + method;
+  }
+
 }

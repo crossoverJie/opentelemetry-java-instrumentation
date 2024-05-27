@@ -21,6 +21,7 @@ import io.opentelemetry.instrumentation.api.semconv.http.HttpServerRoute;
 import io.opentelemetry.instrumentation.api.semconv.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.semconv.http.HttpSpanStatusExtractor;
 import io.opentelemetry.javaagent.bootstrap.internal.CommonConfig;
+import io.opentelemetry.javaagent.bootstrap.internal.InstrumentationConfig;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +50,8 @@ public final class ServletInstrumenterBuilder<REQUEST, RESPONSE> {
       HttpServerAttributesGetter<ServletRequestContext<REQUEST>, ServletResponseContext<RESPONSE>>
           httpAttributesGetter) {
 
+    String serviceName = InstrumentationConfig.get().getString("otel.service.name");
+
     ServletErrorCauseExtractor<REQUEST, RESPONSE> errorCauseExtractor =
         new ServletErrorCauseExtractor<>(accessor);
     AttributesExtractor<ServletRequestContext<REQUEST>, ServletResponseContext<RESPONSE>>
@@ -68,7 +71,7 @@ public final class ServletInstrumenterBuilder<REQUEST, RESPONSE> {
             .addAttributesExtractor(additionalAttributesExtractor)
             .addOperationMetrics(HttpServerMetrics.get())
             .addContextCustomizer(
-                HttpServerRoute.builder(httpAttributesGetter)
+                HttpServerRoute.builder(httpAttributesGetter, serviceName)
                     .setKnownMethods(CommonConfig.get().getKnownHttpRequestMethods())
                     .build());
     if (ServletRequestParametersExtractor.enabled()) {
