@@ -7,7 +7,6 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.StringUtils;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.ContextCustomizer;
-import io.opentelemetry.semconv.incubating.RpcIncubatingAttributes;
 
 public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcRequest> {
   private final String currentServiceName;
@@ -27,8 +26,8 @@ public class GrpcServerContextCustomizer implements ContextCustomizer<GrpcReques
     BaggageBuilder builder = Baggage.fromContext(parentContext).toBuilder();
 
     String currentRpc = Baggage.fromContext(parentContext).getEntryValue(CURRENT_RPC_KEY);
-    String fullMethodName = startAttributeds.get(AttributeKey.stringKey(RpcIncubatingAttributes.RPC_METHOD.getKey()));
-    String rpcService = startAttributeds.get(AttributeKey.stringKey(RpcIncubatingAttributes.RPC_SERVICE.getKey()));
+    String fullMethodName = startAttributeds.get(AttributeKey.stringKey("rpc.method"));
+    String rpcService = startAttributeds.get(AttributeKey.stringKey("rpc.service"));
     // call from grpc
     String method = rpcService + "/" + fullMethodName;
     String baggageInfo = getBaggageInfo(currentServiceName, method);
