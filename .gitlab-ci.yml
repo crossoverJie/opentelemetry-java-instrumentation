@@ -5,7 +5,7 @@ build-job:
   tags:
     - k8s-runner
   script:
-    - gradle --build-cache assemble
+    - gradle assemble
   rules:
     - if: $CI_COMMIT_TAG
   timeout: 2h
