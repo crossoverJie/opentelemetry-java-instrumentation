@@ -28,9 +28,9 @@ import java.util.logging.Logger;
  * HTTP server metrics</a>: <a
  * href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserveractive_requests">the
  * number of in-flight request</a>, <a
- * href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestsize">the
+ * href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestbodysize">the
  * request size</a> and <a
- * href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverresponsesize">the
+ * href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverresponsebodysize">the
  * response size</a>.
  */
 public final class HttpServerExperimentalMetrics implements OperationListener {
